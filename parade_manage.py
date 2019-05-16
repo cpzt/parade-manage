@@ -15,8 +15,11 @@ from parade.core.engine import Engine
 from parade.utils.workspace import load_bootstrap
 
 
-class ParadeManager:
-    
+FLOW_PREFIX = 'flow_'
+
+
+class ParadeManage:
+
     def __init__(self):
         self.linked_tasks = {}
         self._source = {}
@@ -26,7 +29,7 @@ class ParadeManager:
     def init(self):
         boot = load_bootstrap()
         self.context = Context(boot)
-        self.tasks_obj = context.load_tasks()  # all task object
+        self.tasks_obj = self.context.load_tasks()  # all task object
         self.tasks = list(self.tasks_obj.keys())  # all task name
         self.task_deps = {t.name: list(t.deps) for t in self.tasks_obj.values()} # task deps name
         self.reversed_tasks = self.reverse_task()
@@ -108,10 +111,10 @@ class ParadeManager:
     def get_flow(self, names=None, flow_name=None):
         key = self._concat_names(names)
         if flow_name is None:
-            flow_name = self._concat_names(names)
+            flow_name = FLOW_PREFIX + self._concat_names(names) 
         tasks, deps = self.get_task(names)
         flow = Flow(flow_name, tasks, deps)
-        
+
         self._flow = flow
         return flow
 
@@ -122,22 +125,36 @@ class ParadeManager:
 
     def run_flow(self, names, **kwargs):
         engine = Engine(self.context)
-        flow_name = self._concat_names(names)
+        
+        flow_name = kwargs.get('flow_name')
+        if not flow_name:
+            flow_name = FLOW_PREFIX + self._concat_names(names)
         force = kwargs.get('force')
         return engine.execute_async(flow_name=flow_name, force=force)
 
-    def store_flow(self, names):
+    def rm_flow(self, names=None, flow_name=None):
+        if flow_name is None:
+            key = self._concat_names(names)
+            flow_name = FLOW_PREFIX + key
+        flowstore = self.context.get_flowstore()
+        flowstore.delete(flow_name)
+
+    def store_flow(self, names, flow_name=None):
         key = self._concat_names(names)
+        if flow_name is None:
+            flow_name = FLOW_PREFIX + key
 
         tasks, deps = self.get_task(names)
-        # drop       
-        deps = {k:v for k, v in deps.items() if v} 
         
+        # drop
+        tasks = [t for t in tasks if t != flow_name]
+        deps = {k:v for k, v in deps.items() if v}
+
         flowstore = self.context.get_flowstore()
-        flowstore.create(key, *tasks, deps=deps)
+        flowstore.create(flow_name, *tasks, deps=deps)
 
         print('Flow {} created, details:'.format(key))
-        flow = flowstore.load(key).uniform()
+        flow = flowstore.load(flow_name).uniform()
         print('tasks [{}]: {}'.format(len(flow.tasks), flow.tasks))
         print('dependencies:')
         print('------------------------------------------')
@@ -145,26 +162,28 @@ class ParadeManager:
         print('------------------------------------------')
 
     def get_source(self, name):
+        if not isinstance(name, str):
+            raise TypeError('name except str, {} got'.format(type(name).__name__))
         task = self.context.get_task(name)
         lines = inspect.getsourcelines(task.__class__)
         source_code = self.drop_comments(lines)
 
         pattern = re.compile(r"get_stat\(\s*[\'\"](.*?)[\'\"]\s*,"
-                                "|context.load\(\s*[\'\"](.*?)[\'\"]\s*,") 
+                                "|context.load\(\s*[\'\"](.*?)[\'\"]\s*,")
         items = pattern.findall(source_code)
         source = set(flatten(items))
 
         return list(source)
 
-    @staticmethod
-    def to_link(data, res):
+    @classmethod
+    def to_link(cls, data, res):
         '''BFS'''
         for key in data.keys():
             if key and key not in res:
                 res.append(key)
         t =  dict([(k, v) for val in data.values() for k, v in val.items()])
         if t:
-            to_link(t, res)
+            cls.to_link(t, res)
 
     @staticmethod
     def drop_comments(source):
@@ -182,7 +201,8 @@ class ParadeManager:
         elif isinstance(names, (str, int)):
             return str(names)
         else:
-            raise TypeError('names expect int, str, list or tuple, % got' % type(names))
+            raise TypeError('names expect int, str, list or tuple got {}'.format(
+                            type(names).__name__))
 
     def __enter__(self):
         return self
