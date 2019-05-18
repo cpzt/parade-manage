@@ -24,6 +24,7 @@ class ParadeManage:
         self.linked_tasks = {}
         self._source = {}
         self.flows = {}
+        self._source_pattern = None
         self.init()
 
     def init(self):
@@ -161,15 +162,40 @@ class ParadeManage:
         flow.dump()
         print('------------------------------------------')
 
-    def get_source(self, name):
+    @property
+    def source_pattern(self):
+        pattern = self._source_pattern
+        if pattern is None:
+            pattern = "{}\(\s*[\'\"](.*?)[\'\"]\s*,"
+        return pattern
+    
+    @source_pattern.setter
+    def source_pattern(self, value):
+        self._source_pattern = value
+
+    def gen_pattern(self, *args):
+        """
+        :args: str or list or tuple
+        """ 
+        pattern = self.source_pattern
+        print(args)
+        if args:
+            pattern = [pattern.format(arg) for arg in args]
+        print(pattern)
+        return re.compile('|'.join(pattern))
+
+    def get_source(self, name, pattern_key=('get_stat', 'context.load')):
         if not isinstance(name, str):
             raise TypeError('name except str, {} got'.format(type(name).__name__))
+        if not isinstance(pattern_key, (tuple, list)):
+            raise TypeError('pattern_key except tuple or list, {} got'.format(
+                            type(name).__name__))
+
         task = self.context.get_task(name)
         lines = inspect.getsourcelines(task.__class__)
         source_code = self.drop_comments(lines)
 
-        pattern = re.compile(r"get_stat\(\s*[\'\"](.*?)[\'\"]\s*,"
-                                "|context.load\(\s*[\'\"](.*?)[\'\"]\s*,")
+        pattern = self.gen_pattern(*pattern_key)
         items = pattern.findall(source_code)
         source = set(flatten(items))
 
