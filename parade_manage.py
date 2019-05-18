@@ -16,6 +16,8 @@ from parade.utils.workspace import load_bootstrap
 
 
 FLOW_PREFIX = 'flow_'
+SOURCE_FLOW_PREFIX = 'source_flow_'
+SOURCE_PREFIX = 'source_'
 
 
 class ParadeManage:
@@ -24,7 +26,9 @@ class ParadeManage:
         self.linked_tasks = {}
         self._source = {}
         self.flows = {}
+        self.source_depes = {}
         self._source_pattern = None
+        self.pattern = None
         self.init()
 
     def init(self):
@@ -33,28 +37,17 @@ class ParadeManage:
         self.tasks_obj = self.context.load_tasks()  # all task object
         self.tasks = list(self.tasks_obj.keys())  # all task name
         self.task_deps = {t.name: list(t.deps) for t in self.tasks_obj.values()} # task deps name
-        self.reversed_tasks = self.reverse_task()
-        self.task_flows = self.task_flow(self.reversed_tasks)
+        # self.reversed_tasks = self.reverse_task()
+        # self.task_flows = self.task_flow(self.reversed_tasks)
+        self.task_flows = self.get_flows(self.task_deps)
 
-    def reverse_task(self):
-        '''exchange deps and task'''
-        res = {}
-        for key, vals in self.task_deps.items():
-            for val in vals:
-                if val not in res:
-                    res[val] = {}
-                res[val][key] = {}
-            if key not in res:
-                res[key] = {}
-        return res
+        self.source_depes = self.get_source_deps()
+        self.source_flows = self.get_flows(self.source_depes)
 
-    def task_flow(self, tasks):
-        res = {}
-        for key, vals in tasks.items():
-            res[key] = {}
-            if key in self.reversed_tasks:
-                res[key] = self.task_flow(self.reversed_tasks[key])
-        return res
+    def get_flows(self, deps):
+        tasks = reverse_tasks(deps)
+        task_flows = self._get_flows(tasks, tasks)
+        return task_flows
 
     def links(self, key):
         children = self.task_flows[key]
@@ -112,7 +105,7 @@ class ParadeManage:
     def get_flow(self, names=None, flow_name=None):
         key = self._concat_names(names)
         if flow_name is None:
-            flow_name = FLOW_PREFIX + self._concat_names(names) 
+            flow_name = FLOW_PREFIX + self._concat_names(names)
         tasks, deps = self.get_task(names)
         flow = Flow(flow_name, tasks, deps)
 
@@ -126,7 +119,7 @@ class ParadeManage:
 
     def run_flow(self, names, **kwargs):
         engine = Engine(self.context)
-        
+
         flow_name = kwargs.get('flow_name')
         if not flow_name:
             flow_name = FLOW_PREFIX + self._concat_names(names)
@@ -146,10 +139,10 @@ class ParadeManage:
             flow_name = FLOW_PREFIX + key
 
         tasks, deps = self.get_task(names)
-        
+
         # drop
         tasks = [t for t in tasks if t != flow_name]
-        deps = {k:v for k, v in deps.items() if v}
+        deps = {k: v for k, v in deps.items() if v}
 
         flowstore = self.context.get_flowstore()
         flowstore.create(flow_name, *tasks, deps=deps)
@@ -168,23 +161,23 @@ class ParadeManage:
         if pattern is None:
             pattern = "{}\(\s*[\'\"](.*?)[\'\"]\s*,"
         return pattern
-    
+
     @source_pattern.setter
     def source_pattern(self, value):
         self._source_pattern = value
 
-    def gen_pattern(self, *args):
+    def gen_pattern(self, pattern_key=('get_stat', 'context.load')):
         """
         :args: str or list or tuple
-        """ 
+        """
         pattern = self.source_pattern
-        print(args)
         if args:
             pattern = [pattern.format(arg) for arg in args]
-        print(pattern)
-        return re.compile('|'.join(pattern))
+        pattern_c = re.compile('|'.join(pattern))
+        self.pattern = pattern_c
+        return pattern_c
 
-    def get_source(self, name, pattern_key=('get_stat', 'context.load')):
+    def get_source(self, name):
         if not isinstance(name, str):
             raise TypeError('name except str, {} got'.format(type(name).__name__))
         if not isinstance(pattern_key, (tuple, list)):
@@ -195,19 +188,34 @@ class ParadeManage:
         lines = inspect.getsourcelines(task.__class__)
         source_code = self.drop_comments(lines)
 
-        pattern = self.gen_pattern(*pattern_key)
+        if self.pattern is None:
+            pattern = self.gen_pattern()
+        else:
+            pattern = self.pattern
+
         items = pattern.findall(source_code)
         source = set(flatten(items))
 
         return list(source)
 
+    def get_source_deps(self):
+        '''
+        genarete tables/tasks and deps
+        '''
+        if self.pattern is not None:
+            self.source_deps = {}
+
+        for task in self.tasks:
+            if task not in self.source_deps:
+                self.source_deps[task] = self.get_source(task)
+
     @classmethod
-    def to_link(cls, data, res):
+    def to_link(cls, task_flow, res):
         '''BFS'''
-        for key in data.keys():
+        for key in task_flow.keys():
             if key and key not in res:
                 res.append(key)
-        t =  dict([(k, v) for val in data.values() for k, v in val.items()])
+        t = dict([(k, v) for val in task_flow.values() for k, v in val.items()])
         if t:
             cls.to_link(t, res)
 
@@ -228,7 +236,35 @@ class ParadeManage:
             return str(names)
         else:
             raise TypeError('names expect int, str, list or tuple got {}'.format(
-                            type(names).__name__))
+                                type(names).__name__))
+
+    @staticmethod
+    def reverse_tasks(deps):
+        '''exchange deps and task'''
+        res = {}
+        for key, vals in deps.items():
+            for val in vals:
+                if val not in res:
+                    res[val] = {}
+                res[val][key] = {}
+            if key not in res:
+                res[key] = {}
+        return res
+
+    @staticmethod
+    def _get_flows(tasks, all_tasks):
+        res = {}
+        for key, vals in tasks:
+            res[key] = {}
+            if key in all_tasks:
+                res[key] = get_task_flows(tasks[key])
+        return res
+
+    @staticmethod
+    def get_flows(deps):
+        tasks = reverse_tasks(deps)
+        task_flows = _get_task_flows(tasks, tasks)
+        return task_flows
 
     def __enter__(self):
         return self
@@ -248,5 +284,3 @@ def flatten(items, ignore_types=(bytes, str), ignore_flags=('', None)):
             yield from flatten(item)
         else:
             yield item
-
-
