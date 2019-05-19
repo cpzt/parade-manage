@@ -24,9 +24,10 @@ class ParadeManage:
 
     def __init__(self):
         self.linked_tasks = {}
-        self._source = {}
-        self.flows = {}
-        self.source_depes = {}
+        self.linked_source = {}
+        self.task_flows = {}
+        self.source_flows = {}
+        self.source_deps = {}
         self._source_pattern = None
         self.pattern = None
         self.init()
@@ -37,62 +38,68 @@ class ParadeManage:
         self.tasks_obj = self.context.load_tasks()  # all task object
         self.tasks = list(self.tasks_obj.keys())  # all task name
         self.task_deps = {t.name: list(t.deps) for t in self.tasks_obj.values()} # task deps name
-        # self.reversed_tasks = self.reverse_task()
-        # self.task_flows = self.task_flow(self.reversed_tasks)
-        self.task_flows = self.get_flows(self.task_deps)
+        self._task_flows = self.gen_flows(self.task_deps)
 
-        self.source_depes = self.get_source_deps()
-        self.source_flows = self.get_flows(self.source_depes)
+        self.get_source_deps()
+        self._source_flows = self.gen_flows(self.source_deps)
 
-    def get_flows(self, deps):
-        tasks = reverse_tasks(deps)
-        task_flows = self._get_flows(tasks, tasks)
+    def gen_flows(self, deps):
+        tasks = self.reverse_tasks(deps)
+        task_flows = self._gen_flows(tasks, tasks)
         return task_flows
 
-    def links(self, key):
-        children = self.task_flows[key]
+    def links(self, key, flows, linked_tasks):
+        children = flows[key]
         res = []
         self.to_link(children, res)
         res.insert(0, key)
-        self.linked_tasks[key] = res
+        linked_tasks[key] = res
 
-    def _get_task(self, key):
-        if key not in self.task_flows:
+    def _get_task(self, key, flows_, flows, linked_tasks, task_deps):
+        if key not in flows_:
             raise KeyError('{} not in data'.format(key))
 
-        if key not in self.linked_tasks:
-            self.links(key)
+        if key not in linked_tasks:
+            self.links(key, flows_, linked_tasks)
 
-        tasks_link = self.linked_tasks[key]
-
+        tasks_link = linked_tasks[key]
         deps = dict()
         tasks = list()
 
         for task in tasks_link:
-            deps_ = self.task_deps.get(task)
+            deps_ = task_deps.get(task, [])
             tasks.append(task)
             deps[task] = [d for d in deps_ if d in tasks_link]
-        self.flows[key] = (list(tasks), deps)
+        flows[key] = (list(tasks), deps)
 
     def get_task(self, name):
         key = self._concat_names(name)
-        if key not in self.flows:
+        if key not in self.task_flows:
             if isinstance(name, (str, int)):
-                self._get_task(name)
+                self._get_task(name, self._task_flows, self.task_flows, self.linked_tasks, self.task_deps)
             else:
-                self._get_tasks(name)
+                self._get_tasks(name, self._task_flows, self.task_flows, self.linked_tasks, self.task_deps)
+        return self.task_flows[key]
 
-        return self.flows[key]
+    def get_source_task(self, name):
+        key = self._concat_names(name)
+        if key not in self.source_flows:
+            if isinstance(name, (str, int)):
+                self._get_task(name, self._source_flows, self.source_flows,
+                               self.linked_source, self.source_deps)
+            else:
+                self._get_tasks(name, self._source_flows, self.source_flows,
+                                self.linked_source, self.source_deps)
+        return self.source_flows[key]
 
-    def _get_tasks(self, names):
+    def _get_tasks(self, names, flows_, flows, linked_tasks, task_deps):
         key_ = self._concat_names(names)
         tasks_all = set()
         deps_all = {}
         for name in names:
-            if name not in self.flows:
-                self._get_task(name)
-            tasks, deps = self.flows[name]
-            # print(tasks)
+            if name not in flows:
+                self._get_task(name, flows_, flows, linked_tasks, task_deps)
+            tasks, deps = flows[name]
             tasks_all.update(tasks)
             for key, val in deps.items():
                 if key not in deps_all:
@@ -100,40 +107,74 @@ class ParadeManage:
                 else:
                     val = set(deps_all[key] + val)
                     deps_all[key] = list(val)
-        self.flows[key_] = (list(tasks_all), deps_all)
+        flows[key_] = (list(tasks_all), deps_all)
 
-    def get_flow(self, names=None, flow_name=None):
+    def get_task_flow(self, names=None, flow_name=None, suffix=FLOW_PREFIX):
         key = self._concat_names(names)
         if flow_name is None:
-            flow_name = FLOW_PREFIX + self._concat_names(names)
+            flow_name = suffix + self._concat_names(names)
         tasks, deps = self.get_task(names)
         flow = Flow(flow_name, tasks, deps)
 
         self._flow = flow
         return flow
 
-    def dump_flow(self, names=None, flow_name=None):
+    def get_source_flow(self, names, flow_name=None, suffix=SOURCE_FLOW_PREFIX):
+        key = self._concat_names(names)
+        if flow_name is None:
+            flow_name = suffix + self._concat_names(names)
+        tasks, deps_ = self.get_source_task(names)
+
+        tasks = [t for t in tasks if t in self.tasks]
+        deps = {}
+        for k, v in deps_.items():
+            if k in tasks:
+                v = [t for t in v if t in self.tasks]
+                deps[k] = v
+
+        flow = Flow(flow_name, tasks, deps)
+        self._source_flow = flow
+        return flow
+
+    def dump_task_flow(self, names=None, flow_name=None):
         flow = self.get_flow(names, flow_name)
         flow = flow.uniform()
         flow.dump()
 
-    def run_flow(self, names, **kwargs):
+    def dump_source_flow(self, names=None, flow_name=None):
+        flow = self.get_source_flow(names, flow_name)
+        flow = flow.uniform()
+        flow.dump()
+
+    def run_flow(self, names, suffix, **kwargs):
         engine = Engine(self.context)
 
         flow_name = kwargs.get('flow_name')
         if not flow_name:
-            flow_name = FLOW_PREFIX + self._concat_names(names)
+            flow_name = suffix + self._concat_names(names)
         force = kwargs.get('force')
         return engine.execute_async(flow_name=flow_name, force=force)
 
-    def rm_flow(self, names=None, flow_name=None):
+    def run_task_flow(self, names, **kwargs):
+        return self.run_flow(names, suffix=FLOW_PREFIX, **kwargs)
+
+    def run_task_flow(self, names, **kwargs):
+        return self.run_flow(names, suffix=SOURCE_FLOW_PREFIX, **kwargs)
+
+    def rm_flow(self, names=None, flow_name=None, suffix=None):
         if flow_name is None:
             key = self._concat_names(names)
-            flow_name = FLOW_PREFIX + key
+            flow_name = suffix + key
         flowstore = self.context.get_flowstore()
         flowstore.delete(flow_name)
 
-    def store_flow(self, names, flow_name=None):
+    def rm_task_flow(self, names=None, flow_name=None):
+        return self.rm_flow(names=None, flow_name=None, suffix=FLOW_PREFIX)
+
+    def rm_source_flow(self, names=None, flow_name=None):
+        return self.rm_flow(names=None, flow_name=None, suffix=SOURCE_FLOW_PREFIX)
+
+    def _store_task_flow(self, names, flow_name=None):
         key = self._concat_names(names)
         if flow_name is None:
             flow_name = FLOW_PREFIX + key
@@ -143,11 +184,39 @@ class ParadeManage:
         # drop
         tasks = [t for t in tasks if t != flow_name]
         deps = {k: v for k, v in deps.items() if v}
+        return flow_name, tasks, deps
 
+    def store_task_flow(self, names, flow_name=None):
+        flow_name, tasks, deps = self._store_task_flow(names, flow_name=None)
+        self._show_flow(flow_name, tasks, deps)
+
+    def store_source_flow(self, names, flow_name=None):
+        flow_name, tasks, deps = self._store_source_flow(names, flow_name=None)
+        self._show_flow(flow_name, tasks, deps)
+
+    def _store_source_flow(self, names, flow_name=None):
+        key = self._concat_names(names)
+        if flow_name is None:
+            flow_name = SOURCE_FLOW_PREFIX + key
+
+        tasks, deps_ = self.get_source_task(names)
+
+        #  drop
+        tasks = [t for t in tasks if t in self.tasks]
+        deps = {}
+        for k, v in deps_.items():
+            if k in tasks:
+                v = [t for t in v if t in self.tasks]
+                if v:
+                    deps[k] = v
+
+        return flow_name, tasks, deps
+
+    def _show_flow(self, flow_name, tasks, deps):
         flowstore = self.context.get_flowstore()
         flowstore.create(flow_name, *tasks, deps=deps)
 
-        print('Flow {} created, details:'.format(key))
+        print('Flow {} created, details:'.format(flow_name))
         flow = flowstore.load(flow_name).uniform()
         print('tasks [{}]: {}'.format(len(flow.tasks), flow.tasks))
         print('dependencies:')
@@ -166,18 +235,18 @@ class ParadeManage:
     def source_pattern(self, value):
         self._source_pattern = value
 
-    def gen_pattern(self, pattern_key=('get_stat', 'context.load')):
+    def gen_pattern(self, pattern_key):
         """
-        :args: str or list or tuple
+        :pattern_key: str or list or tuple
         """
         pattern = self.source_pattern
-        if args:
-            pattern = [pattern.format(arg) for arg in args]
+        if pattern_key:
+            pattern = [pattern.format(arg) for arg in pattern_key]
         pattern_c = re.compile('|'.join(pattern))
         self.pattern = pattern_c
         return pattern_c
 
-    def get_source(self, name):
+    def get_source(self, name, pattern_key=('get_stat', 'context.load')):
         if not isinstance(name, str):
             raise TypeError('name except str, {} got'.format(type(name).__name__))
         if not isinstance(pattern_key, (tuple, list)):
@@ -189,7 +258,7 @@ class ParadeManage:
         source_code = self.drop_comments(lines)
 
         if self.pattern is None:
-            pattern = self.gen_pattern()
+            pattern = self.gen_pattern(pattern_key)
         else:
             pattern = self.pattern
 
@@ -202,8 +271,8 @@ class ParadeManage:
         '''
         genarete tables/tasks and deps
         '''
-        if self.pattern is not None:
-            self.source_deps = {}
+        # if self.pattern is not None:
+        #     self.source_deps = {}
 
         for task in self.tasks:
             if task not in self.source_deps:
@@ -251,20 +320,14 @@ class ParadeManage:
                 res[key] = {}
         return res
 
-    @staticmethod
-    def _get_flows(tasks, all_tasks):
+    @classmethod
+    def _gen_flows(cls, tasks, all_tasks):
         res = {}
-        for key, vals in tasks:
+        for key, vals in tasks.items():
             res[key] = {}
             if key in all_tasks:
-                res[key] = get_task_flows(tasks[key])
+                res[key] = cls._gen_flows(all_tasks[key], all_tasks)
         return res
-
-    @staticmethod
-    def get_flows(deps):
-        tasks = reverse_tasks(deps)
-        task_flows = _get_task_flows(tasks, tasks)
-        return task_flows
 
     def __enter__(self):
         return self
