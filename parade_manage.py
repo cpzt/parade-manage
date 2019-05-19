@@ -25,6 +25,7 @@ class ParadeManage:
     def __init__(self):
         self.linked_tasks = {}
         self.linked_source = {}
+        # self._source = {}
         self.task_flows = {}
         self.source_flows = {}
         self.source_deps = {}
@@ -38,6 +39,8 @@ class ParadeManage:
         self.tasks_obj = self.context.load_tasks()  # all task object
         self.tasks = list(self.tasks_obj.keys())  # all task name
         self.task_deps = {t.name: list(t.deps) for t in self.tasks_obj.values()} # task deps name
+        # self.reversed_tasks = self.reverse_task()
+        # self.task_flows = self.task_flow(self.reversed_tasks)
         self._task_flows = self.gen_flows(self.task_deps)
 
         self.get_source_deps()
@@ -54,6 +57,7 @@ class ParadeManage:
         self.to_link(children, res)
         res.insert(0, key)
         linked_tasks[key] = res
+        # return res
 
     def _get_task(self, key, flows_, flows, linked_tasks, task_deps):
         if key not in flows_:
@@ -63,6 +67,7 @@ class ParadeManage:
             self.links(key, flows_, linked_tasks)
 
         tasks_link = linked_tasks[key]
+        # print(tasks_link)
         deps = dict()
         tasks = list()
 
@@ -70,6 +75,10 @@ class ParadeManage:
             deps_ = task_deps.get(task, [])
             tasks.append(task)
             deps[task] = [d for d in deps_ if d in tasks_link]
+        # self.flows[key] = (list(tasks), deps)
+        # print('tasks:', tasks)
+        # flows[key] = (list(tasks), deps)
+        # print(flows[key])
         flows[key] = (list(tasks), deps)
 
     def get_task(self, name):
@@ -131,8 +140,9 @@ class ParadeManage:
             if k in tasks:
                 v = [t for t in v if t in self.tasks]
                 deps[k] = v
-
+        # deps = {k: v for k, v in deps.items() if k in tasks}
         flow = Flow(flow_name, tasks, deps)
+
         self._source_flow = flow
         return flow
 
@@ -169,10 +179,10 @@ class ParadeManage:
         flowstore.delete(flow_name)
 
     def rm_task_flow(self, names=None, flow_name=None):
-        return self.rm_flow(names=None, flow_name=None, suffix=FLOW_PREFIX)
+        return self.rm_flow(names, flow_name, suffix=FLOW_PREFIX)
 
     def rm_source_flow(self, names=None, flow_name=None):
-        return self.rm_flow(names=None, flow_name=None, suffix=SOURCE_FLOW_PREFIX)
+        return self.rm_flow(names, flow_name, suffix=SOURCE_FLOW_PREFIX)
 
     def _store_task_flow(self, names, flow_name=None):
         key = self._concat_names(names)
@@ -328,6 +338,11 @@ class ParadeManage:
             if key in all_tasks:
                 res[key] = cls._gen_flows(all_tasks[key], all_tasks)
         return res
+
+    # def get_flows(self, deps):
+    #     tasks = self.reverse_tasks(deps)
+    #     task_flows = self._get_flows(tasks, tasks)
+    #     return task_flows
 
     def __enter__(self):
         return self
