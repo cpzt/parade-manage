@@ -43,19 +43,24 @@ The first result is tasks, other is deps. And also, you can get mutil failed tas
 ```
 Then, create flow and store flow, generate a yaml file
 ```bash
-> manage.store_flow('a') # args: 'a' or ['d', 'e']  
+> manage.store_task_flow('a') # args: 'a' or ['d', 'e']  
 ```
 Or, remove flow by task name(s)
 ```bash
-> manage.rm_flow('a')
+> manage.rm_task_flow('a')
 ```
 Run the flow, execute failed tasks
 ```
-manage.run_flow('a')
+manage.run_taskflow('a')
 ```
 Sometimes, A task does not depend on other tasks, but uses some tables.
 Now you can get the tables and tasks.
 ```bash
 > manage.get_source('d')
 ['t1', 'a']  # return table 't1' and task name 'a'
+```
+And if table `t1` is failed, you can use `store_source_flow` to store flow
+```bash
+> manage.store_source_flow('t1')
+# return a flow related to etl task only
 ```
