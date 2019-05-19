@@ -330,11 +330,6 @@ class ParadeManage:
                 res[key] = cls._gen_flows(all_tasks[key], all_tasks)
         return res
 
-    # def get_flows(self, deps):
-    #     tasks = self.reverse_tasks(deps)
-    #     task_flows = self._get_flows(tasks, tasks)
-    #     return task_flows
-
     def __enter__(self):
         return self
 
