@@ -162,7 +162,7 @@ class ParadeManage:
     def run_source_flow(self, names, **kwargs):
         return self.run_flow(names, suffix=SOURCE_FLOW_PREFIX, **kwargs)
 
-    def rm_flow(self, names=None, flow_name=None, suffix=None):
+    def _rm_flow(self, names=None, flow_name=None, suffix=None):
         if flow_name is None:
             key = self._concat_names(names)
             flow_name = suffix + key
@@ -170,10 +170,10 @@ class ParadeManage:
         flowstore.delete(flow_name)
 
     def rm_task_flow(self, names=None, flow_name=None):
-        return self.rm_flow(names, flow_name, suffix=FLOW_PREFIX)
+        return self._rm_flow(names, flow_name, suffix=FLOW_PREFIX)
 
     def rm_source_flow(self, names=None, flow_name=None):
-        return self.rm_flow(names, flow_name, suffix=SOURCE_FLOW_PREFIX)
+        return self._rm_flow(names, flow_name, suffix=SOURCE_FLOW_PREFIX)
 
     def _store_task_flow(self, names, flow_name=None):
         key = self._concat_names(names)
