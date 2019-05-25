@@ -159,7 +159,7 @@ class ParadeManage:
     def run_task_flow(self, names, **kwargs):
         return self.run_flow(names, suffix=FLOW_PREFIX, **kwargs)
 
-    def run_task_flow(self, names, **kwargs):
+    def run_source_flow(self, names, **kwargs):
         return self.run_flow(names, suffix=SOURCE_FLOW_PREFIX, **kwargs)
 
     def rm_flow(self, names=None, flow_name=None, suffix=None):
