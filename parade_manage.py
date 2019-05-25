@@ -138,7 +138,7 @@ class ParadeManage:
         return flow
 
     def dump_task_flow(self, names=None, flow_name=None):
-        flow = self.get_flow(names, flow_name)
+        flow = self.get_task_flow(names, flow_name)
         flow = flow.uniform()
         flow.dump()
 
