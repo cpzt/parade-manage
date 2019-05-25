@@ -147,7 +147,7 @@ class ParadeManage:
         flow = flow.uniform()
         flow.dump()
 
-    def run_flow(self, names, suffix, **kwargs):
+    def _run_flow(self, names, suffix, **kwargs):
         engine = Engine(self.context)
 
         flow_name = kwargs.get('flow_name')
@@ -157,10 +157,10 @@ class ParadeManage:
         return engine.execute_async(flow_name=flow_name, force=force)
 
     def run_task_flow(self, names, **kwargs):
-        return self.run_flow(names, suffix=FLOW_PREFIX, **kwargs)
+        return self._run_flow(names, suffix=FLOW_PREFIX, **kwargs)
 
     def run_source_flow(self, names, **kwargs):
-        return self.run_flow(names, suffix=SOURCE_FLOW_PREFIX, **kwargs)
+        return self._run_flow(names, suffix=SOURCE_FLOW_PREFIX, **kwargs)
 
     def _rm_flow(self, names=None, flow_name=None, suffix=None):
         if flow_name is None:
