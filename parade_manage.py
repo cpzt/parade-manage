@@ -8,6 +8,7 @@ import inspect
 
 from contextlib import contextmanager
 from collections import Iterable
+from queue import Queue
 
 from parade.core.task import Flow
 from parade.core.context import Context
@@ -278,6 +279,21 @@ class ParadeManage:
         for task in self.tasks:
             if task not in self.source_deps:
                 self.source_deps[task] = self.get_source(task)
+
+    def bfs(self, tasks, targets):
+        q = Queue()
+        s = set()
+
+        targets = set(targets)
+        [q.put(task) or s.add(task) for task in targets]
+
+        while not q.empty():
+            task = q.get()
+            yield task
+            for t in tasks.get(task):
+                if t not in s:
+                    q.put(t)
+                    s.add(t)
 
     @classmethod
     def to_link(cls, task_flow, res):
