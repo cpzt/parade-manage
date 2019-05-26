@@ -8,6 +8,7 @@ import inspect
 
 from contextlib import contextmanager
 from collections import Iterable
+from queue import Queue
 
 from parade.core.task import Flow
 from parade.core.context import Context
