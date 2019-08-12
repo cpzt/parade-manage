@@ -192,11 +192,11 @@ class ParadeManage:
         return flow_name, tasks, deps
 
     def store_task_flow(self, names, flow_name=None):
-        flow_name, tasks, deps = self._store_task_flow(names, flow_name=None)
+        flow_name, tasks, deps = self._store_task_flow(names, flow_name=flow_name)
         self._show_flow(flow_name, tasks, deps)
 
     def store_source_flow(self, names, flow_name=None):
-        flow_name, tasks, deps = self._store_source_flow(names, flow_name=None)
+        flow_name, tasks, deps = self._store_source_flow(names, flow_name=flow_name)
         self._show_flow(flow_name, tasks, deps)
 
     def _store_source_flow(self, names, flow_name=None):
