@@ -47,6 +47,12 @@ class ParadeManage:
 
         self.map_task_names = self._map_task_name()
 
+    def map_filename(self):
+        """
+        :return: `key` is taskname , `value` is filename
+        """
+        return {k: str(type(v)).split('.')[-2] for k, v in self.tasks_obj.items()}
+
     def gen_flows(self, deps):
         tasks = self.reverse_tasks(deps)
         task_flows = self._gen_flows(tasks, tasks)
