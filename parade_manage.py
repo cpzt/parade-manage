@@ -3,11 +3,13 @@
 """
 parade manager for managing `parade`
 """
+import os
 import re
 import inspect
 
 from contextlib import contextmanager
 from collections import Iterable
+from queue import Queue
 
 from parade.core.task import Flow
 from parade.core.context import Context
@@ -37,11 +39,13 @@ class ParadeManage:
         self.context = Context(boot)
         self.tasks_obj = self.context.load_tasks()  # all task object
         self.tasks = list(self.tasks_obj.keys())  # all task name
-        self.task_deps = {t.name: list(t.deps) for t in self.tasks_obj.values()} # task deps name
+        self.task_deps = {t.name: list(t.deps) for t in self.tasks_obj.values()}  # task deps name
         self._task_flows = self.gen_flows(self.task_deps)
 
         self.get_source_deps()
         self._source_flows = self.gen_flows(self.source_deps)
+
+        self.map_task_names = self._map_task_name()
 
     def gen_flows(self, deps):
         tasks = self.reverse_tasks(deps)
@@ -272,12 +276,58 @@ class ParadeManage:
         '''
         genarete tables/tasks and deps
         '''
-        # if self.pattern is not None:
-        #     self.source_deps = {}
-
         for task in self.tasks:
             if task not in self.source_deps:
                 self.source_deps[task] = self.get_source(task)
+
+    def bfs(self, tasks, targets):
+        q = Queue()
+        s = set()
+
+        targets = set(targets)
+        [q.put(task) or s.add(task) for task in targets]
+
+        while not q.empty():
+            task = q.get()
+            yield task
+            for t in tasks.get(task):
+                if t not in s:
+                    q.put(t)
+                    s.add(t)
+
+    def _map_task_name(self):
+        tasks = {}
+        for key, val in self.tasks_obj.items():
+            tasks[key] = val.__module__.split('.')[-1]
+        return tasks
+
+    def map_source_task_name(self, name):
+        key = self._concat_names(name)
+        tasks, _ = self.get_source_task(key)
+        return {task: self.map_task_names.get(task, '') for task in tasks}
+
+    def store_source_task_name(self, name):
+        '''
+            store task file name and task's runtime name
+        '''
+        dirname = 'task_map_name'
+        key = self._concat_names(name)
+        tasks = self.map_source_task_name(name)
+        if not os.path.exists(dirname):
+            os.mkdir(dirname)
+        filename = os.path.join(dirname, key)
+        with open(filename, 'w+') as f:
+            for key, val in tasks.items():
+                line = '{:<35s}{}\n'.format(key, val)
+                f.write(line)
+
+    def rm_source_task_name(self, name, force=False):
+        key = self._concat_names(name)
+        dirname = 'task_map_name'
+        filename = os.path.join(dirname, key)
+        os.remove(filename)
+        if not os.listdir(dirname) or force:
+            os.rmdir(dirname)
 
     @classmethod
     def to_link(cls, task_flow, res):
