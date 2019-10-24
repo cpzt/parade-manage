@@ -27,7 +27,7 @@ Initialize the class
 ```python
 from parade_manage import ParadeManage
 	
-manage = ParadeManage()
+manage = ParadeManage() # or manage = ParadeManage(path='/your/parade/project/path')
 ```
 If task a is failed, you can get task a's subtask and deps, like 
 
