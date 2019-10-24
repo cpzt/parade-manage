@@ -24,7 +24,7 @@ SOURCE_PREFIX = 'source_'
 
 class ParadeManage:
 
-    def __init__(self):
+    def __init__(self, path=None):
         self.linked_tasks = {}
         self.linked_source = {}
         self.task_flows = {}
@@ -32,6 +32,9 @@ class ParadeManage:
         self.source_deps = {}
         self._source_pattern = None
         self.pattern = None
+        if path:
+            os.chdir(path)
+
         self.init()
 
     def init(self):
@@ -393,7 +396,7 @@ class ParadeManage:
         pass
 
     def __repr__(self):
-        return 'ParadeManager()'
+        return '<ParadeManager()>'
 
 
 def flatten(items, ignore_types=(bytes, str), ignore_flags=('', None)):
