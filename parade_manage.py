@@ -11,10 +11,12 @@ from contextlib import contextmanager
 from collections import Iterable
 from queue import Queue
 
-from parade.core.task import Flow
+from parade.core.task import Flow, Task
 from parade.core.context import Context
 from parade.core.engine import Engine
 from parade.utils.workspace import load_bootstrap
+from parade.utils.modutils import iter_classes
+from parade.error.task_errors import DuplicatedTaskExistError
 
 
 FLOW_PREFIX = 'flow_'
@@ -24,7 +26,7 @@ SOURCE_PREFIX = 'source_'
 
 class ParadeManage:
 
-    def __init__(self, path=None):
+    def __init__(self, path=None, target_path=None):
         self.linked_tasks = {}
         self.linked_source = {}
         self.task_flows = {}
@@ -32,15 +34,19 @@ class ParadeManage:
         self.source_deps = {}
         self._source_pattern = None
         self.pattern = None
+        self.target_path = target_path
+
         if path:
             os.chdir(path)
 
         self.init()
 
+
     def init(self):
         boot = load_bootstrap()
         self.context = Context(boot)
-        self.tasks_obj = self.context.load_tasks()  # all task object
+        self.tasks_obj = self.context.load_tasks(self.target_path)  # all task object
+        # self.tasks_obj = self.load_tasks(self.target_path)  # all task object
         self.tasks = list(self.tasks_obj.keys())  # all task name
         self.task_deps = {t.name: list(t.deps) for t in self.tasks_obj.values()}  # task deps name
         self._task_flows = self.gen_flows(self.task_deps)
@@ -396,7 +402,42 @@ class ParadeManage:
         pass
 
     def __repr__(self):
-        return '<ParadeManager()>'
+        return '<ParadeManager(path={}, target_path={})>'.format(self.path, self.target_path)
+
+    def store_to_file(self, path=None, task_class=Task):
+        """
+        :param path: dir path
+
+        :Example:
+
+        >>>  m.store_to_file('analysis.task')
+
+        """
+        if path is None:
+            path = self.context.name + '.task'
+
+        d = {}
+        for task_class in iter_classes(task_class, path):
+            task = task_class()
+            task_name = task.name
+            deps = task.deps
+
+            if task_name in d:
+                print([task_name], [task])
+                raise DuplicatedTaskExistError(task=task_name)
+            d[task_name] = deps
+
+        tasks = list(d.keys())
+        deps = {}
+        for key, vals in d.items():
+            tmp = []
+            for val in vals:
+                if val in tasks:
+                    tmp.append(val)
+            if len(tmp) > 0:
+                deps[key] = tmp
+
+        self._show_flow(path, tasks, deps)
 
 
 def flatten(items, ignore_types=(bytes, str), ignore_flags=('', None)):

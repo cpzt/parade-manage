@@ -64,3 +64,8 @@ And if table `t1` is failed, you can use `store_source_flow` to store flow
 > manage.store_source_flow('t1')
 # return a flow related to etl task only
 ```
+Store DAG to file
+```bash
+>>> manage.store_to_file('analysis.task')
+# return a dag
+```
