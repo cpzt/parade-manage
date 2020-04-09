@@ -52,7 +52,7 @@ class ParadeManage:
         self._task_flows = self.gen_flows(self.task_deps)
 
         self.get_source_deps()
-        self._source_flows = self.gen_flows(self.source_deps)
+        # self._source_flows = self.gen_flows(self.source_deps)
 
         self.map_task_names = self._map_task_name()
 
@@ -64,6 +64,7 @@ class ParadeManage:
 
     def gen_flows(self, deps):
         tasks = self.reverse_tasks(deps)
+        
         task_flows = self._gen_flows(tasks, tasks)
         return task_flows
 
@@ -208,6 +209,7 @@ class ParadeManage:
 
     def store_task_flow(self, names, flow_name=None):
         flow_name, tasks, deps = self._store_task_flow(names, flow_name=flow_name)
+
         self._show_flow(flow_name, tasks, deps)
 
     def store_source_flow(self, names, flow_name=None):
@@ -283,8 +285,9 @@ class ParadeManage:
             pattern = self.pattern
 
         items = pattern.findall(source_code)
-        source = set(flatten(items))
 
+        source = set(list(flatten(items)) + self.task_deps[task.name])
+        
         return list(source)
 
     def get_source_deps(self):
@@ -438,6 +441,34 @@ class ParadeManage:
                 deps[key] = tmp
 
         self._show_flow(path, tasks, deps)
+
+
+    def gen_deps(self, task):
+        if task not in self.task_deps:
+            raise KeyError(f"no such task {task}")
+
+        stack = [task]
+        res = {}
+        while stack:
+            name = stack.pop(0)
+            deps = list(self.task_deps.get(name, []))
+
+            if name not in res:
+                res[name] = deps
+            stack.extend(deps)
+
+        return res
+
+    def gen_all_deps(self, tasks):
+        res = {}
+        for task in tasks:
+            deps = self.gen_deps(task)
+            res.update(deps)
+        return res
+
+    def store_all_deps(self, name, tasks):
+        deps = self.gen_all_deps(tasks)
+        self._show_flow('flow_' + name, list(deps.keys()), {k: v for k, v in deps.items() if len(v) > 0})
 
 
 def flatten(items, ignore_types=(bytes, str), ignore_flags=('', None)):
