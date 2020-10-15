@@ -4,11 +4,11 @@ from setuptools import setup
 
 setup(
     name='parade-manage',
-    version='0.0.1.8',
+    version='0.0.1.9',
     author='Pan Chen',
     author_email='chenpan9012@gmail.com',
     description='A manage module of parade',
-    url='https://github.com/qianmosolo/parade-manage',
+    url='https://github.com/cpzt/parade-manage',
     install_requires=['parade'],
     py_modules=['parade_manage'],
     zip_safe=False,

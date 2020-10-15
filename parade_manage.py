@@ -41,19 +41,15 @@ class ParadeManage:
 
         self.init()
 
-
     def init(self):
         boot = load_bootstrap()
         self.context = Context(boot)
         self.tasks_obj = self.context.load_tasks(self.target_path)  # all task object
-        # self.tasks_obj = self.load_tasks(self.target_path)  # all task object
         self.tasks = list(self.tasks_obj.keys())  # all task name
         self.task_deps = {t.name: list(t.deps) for t in self.tasks_obj.values()}  # task deps name
         self._task_flows = self.gen_flows(self.task_deps)
 
         self.get_source_deps()
-        # self._source_flows = self.gen_flows(self.source_deps)
-
         self.map_task_names = self._map_task_name()
 
     def map_filename(self):
@@ -130,7 +126,6 @@ class ParadeManage:
         flows[key_] = (list(tasks_all), deps_all)
 
     def get_task_flow(self, names=None, flow_name=None, suffix=FLOW_PREFIX):
-        key = self._concat_names(names)
         if flow_name is None:
             flow_name = suffix + self._concat_names(names)
         tasks, deps = self.get_task(names)
@@ -140,7 +135,6 @@ class ParadeManage:
         return flow
 
     def get_source_flow(self, names, flow_name=None, suffix=SOURCE_FLOW_PREFIX):
-        key = self._concat_names(names)
         if flow_name is None:
             flow_name = suffix + self._concat_names(names)
         tasks, deps_ = self.get_source_task(names)
@@ -151,7 +145,6 @@ class ParadeManage:
             if k in tasks:
                 v = [t for t in v if t in self.tasks]
                 deps[k] = v
-        # deps = {k: v for k, v in deps.items() if k in tasks}
         flow = Flow(flow_name, tasks, deps)
 
         self._source_flow = flow
@@ -291,9 +284,9 @@ class ParadeManage:
         return list(source)
 
     def get_source_deps(self):
-        '''
-        genarete tables/tasks and deps
-        '''
+        """
+        generate tables/tasks and deps
+        """
         for task in self.tasks:
             if task not in self.source_deps:
                 self.source_deps[task] = self.get_source(task)
@@ -325,9 +318,9 @@ class ParadeManage:
         return {task: self.map_task_names.get(task, '') for task in tasks}
 
     def store_source_task_name(self, name):
-        '''
+        """
             store task file name and task's runtime name
-        '''
+        """
         dirname = 'task_map_name'
         key = self._concat_names(name)
         tasks = self.map_source_task_name(name)
@@ -349,7 +342,7 @@ class ParadeManage:
 
     @classmethod
     def to_link(cls, task_flow, res):
-        '''BFS'''
+        """BFS"""
         for key in task_flow.keys():
             if key and key not in res:
                 res.append(key)
@@ -378,7 +371,7 @@ class ParadeManage:
 
     @staticmethod
     def reverse_tasks(deps):
-        '''exchange deps and task'''
+        """exchange deps and task"""
         res = {}
         for key, vals in deps.items():
             for val in vals:
@@ -441,7 +434,6 @@ class ParadeManage:
                 deps[key] = tmp
 
         self._show_flow(path, tasks, deps)
-
 
     def gen_deps(self, task):
         if task not in self.task_deps:
