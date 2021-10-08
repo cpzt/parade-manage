@@ -286,7 +286,8 @@ class ParadeManage:
             if task not in self.source_deps:
                 self.source_deps[task] = self.get_source(task)
 
-    def bfs(self, tasks, targets):
+    @staticmethod
+    def bfs(tasks, targets):
         q = Queue()
         s = set()
 
@@ -316,12 +317,12 @@ class ParadeManage:
         """
             store task file name and task's runtime name
         """
-        dirname = 'task_map_name'
+        dir_name = 'task_map_name'
         key = self._concat_names(name)
         tasks = self.map_source_task_name(name)
-        if not os.path.exists(dirname):
-            os.mkdir(dirname)
-        filename = os.path.join(dirname, key)
+        if not os.path.exists(dir_name):
+            os.mkdir(dir_name)
+        filename = os.path.join(dir_name, key)
         with open(filename, 'w+') as f:
             for key, val in tasks.items():
                 line = '{:<35s}{}\n'.format(key, val)
