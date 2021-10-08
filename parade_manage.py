@@ -174,8 +174,8 @@ class ParadeManage:
         if flow_name is None:
             key = self._concat_names(names)
             flow_name = suffix + key
-        flowstore = self.context.get_flowstore()
-        flowstore.delete(flow_name)
+        flow_store = self.context.get_flowstore()
+        flow_store.delete(flow_name)
 
     def rm_task_flow(self, names=None, flow_name=None):
         return self._rm_flow(names, flow_name, suffix=FLOW_PREFIX)
@@ -223,11 +223,11 @@ class ParadeManage:
         return flow_name, tasks, deps
 
     def _show_flow(self, flow_name, tasks, deps):
-        flowstore = self.context.get_flowstore()
-        flowstore.create(flow_name, *tasks, deps=deps)
+        flow_store = self.context.get_flowstore()
+        flow_store.create(flow_name, *tasks, deps=deps)
 
         print('Flow {} created, details:'.format(flow_name))
-        flow = flowstore.load(flow_name).uniform()
+        flow = flow_store.load(flow_name).uniform()
         print('tasks [{}]: {}'.format(len(flow.tasks), flow.tasks))
         print('dependencies:')
         print('------------------------------------------')
