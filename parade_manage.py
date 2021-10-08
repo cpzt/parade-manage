@@ -35,12 +35,10 @@ class ParadeManage:
         self.pattern = None
         self.target_path = target_path
 
+        self.path = path
         if path:
             os.chdir(path)
 
-        self.init()
-
-    def init(self):
         boot = load_bootstrap()
         self.context = Context(boot)
         self.tasks_obj = self.context.load_tasks(self.target_path)  # all task object
@@ -53,7 +51,7 @@ class ParadeManage:
 
     def map_filename(self):
         """
-        :return: `key` is taskname , `value` is filename
+        :return: `key` is task name , `value` is file name
         """
         return {k: str(type(v)).split('.')[-2] for k, v in self.tasks_obj.items()}
 
@@ -67,7 +65,7 @@ class ParadeManage:
         children = flows[key]
         res = []
         self.to_link(children, res)
-        res.insert(0, key)
+        list.insert(res, 0, key)
         linked_tasks[key] = res
 
     def _get_task(self, key, flows_, flows, linked_tasks, task_deps):
@@ -98,13 +96,13 @@ class ParadeManage:
 
     def get_source_task(self, name):
         key = self._concat_names(name)
-        if key not in self.source_flows:
-            if isinstance(name, (str, int)):
-                self._get_task(name, self._source_flows, self.source_flows,
-                               self.linked_source, self.source_deps)
-            else:
-                self._get_tasks(name, self._source_flows, self.source_flows,
-                                self.linked_source, self.source_deps)
+        # if key not in self.source_flows:
+        #     if isinstance(name, (str, int)):
+        #         self._get_task(name, self._source_flows, self.source_flows,
+        #                        self.linked_source, self.source_deps)
+        #     else:
+        #         self._get_tasks(name, self._source_flows, self.source_flows,
+        #                         self.linked_source, self.source_deps)
         return self.source_flows[key]
 
     def _get_tasks(self, names, flows_, flows, linked_tasks, task_deps):
@@ -130,7 +128,6 @@ class ParadeManage:
         tasks, deps = self.get_task(names)
         flow = Flow(flow_name, tasks, deps)
 
-        self._flow = flow
         return flow
 
     def get_source_flow(self, names, flow_name=None, suffix=SOURCE_FLOW_PREFIX):
@@ -146,7 +143,6 @@ class ParadeManage:
                 deps[k] = v
         flow = Flow(flow_name, tasks, deps)
 
-        self._source_flow = flow
         return flow
 
     def dump_task_flow(self, names=None, flow_name=None):
@@ -333,11 +329,11 @@ class ParadeManage:
 
     def rm_source_task_name(self, name, force=False):
         key = self._concat_names(name)
-        dirname = 'task_map_name'
-        filename = os.path.join(dirname, key)
+        dir_name = 'task_map_name'
+        filename = os.path.join(dir_name, key)
         os.remove(filename)
-        if not os.listdir(dirname) or force:
-            os.rmdir(dirname)
+        if not os.listdir(dir_name) or force:
+            os.rmdir(dir_name)
 
     @classmethod
     def to_link(cls, task_flow, res):
@@ -384,7 +380,7 @@ class ParadeManage:
     @classmethod
     def _gen_flows(cls, tasks, all_tasks):
         res = {}
-        for key, vals in tasks.items():
+        for key in tasks.keys():
             res[key] = {}
             if key in all_tasks:
                 res[key] = cls._gen_flows(all_tasks[key], all_tasks)
@@ -402,9 +398,11 @@ class ParadeManage:
     def store_to_file(self, path=None, task_class=Task):
         """
         :param path: dir path
+        :param task_class: parade `Task` class
 
         :Example:
 
+        >>>  m = ParadeManage()
         >>>  m.store_to_file('analysis.task')
 
         """
