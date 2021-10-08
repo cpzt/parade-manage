@@ -7,7 +7,6 @@ import os
 import re
 import inspect
 
-from contextlib import contextmanager
 from collections import Iterable
 from queue import Queue
 
