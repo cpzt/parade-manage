@@ -96,13 +96,6 @@ class ParadeManage:
 
     def get_source_task(self, name):
         key = self._concat_names(name)
-        # if key not in self.source_flows:
-        #     if isinstance(name, (str, int)):
-        #         self._get_task(name, self._source_flows, self.source_flows,
-        #                        self.linked_source, self.source_deps)
-        #     else:
-        #         self._get_tasks(name, self._source_flows, self.source_flows,
-        #                         self.linked_source, self.source_deps)
         return self.source_flows[key]
 
     def _get_tasks(self, names, flows_, flows, linked_tasks, task_deps):
