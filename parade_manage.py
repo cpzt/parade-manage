@@ -9,6 +9,7 @@ import inspect
 
 from collections import Iterable
 from queue import Queue
+from datetime import datetime
 
 from parade.core.task import Flow, Task
 from parade.core.context import Context
@@ -449,7 +450,30 @@ class ParadeManage:
             res.update(deps)
         return res
 
-    def store_all_deps(self, name, tasks):
+    def get_tasks_with_prefix(self, prefix):
+        if prefix is not None and len(prefix) > 0:
+            tasks = [task for task in self.task_deps if task.startswith(prefix)]
+            return tasks
+        return []
+
+    def get_tasks_with_suffix(self, suffix):
+        if suffix is not None and len(suffix) > 0:
+            tasks = [task for task in self.task_deps if task.endswith(suffix)]
+            return tasks
+        return []
+
+    def store_all_deps(self, name=None, tasks=None, prefix=None, suffix=None):
+        name = name if name is not None else datetime.now().strftime('%Y%m%d')
+
+        if tasks is not None or len(tasks) > 0:
+            tasks = tasks
+        elif prefix is not None:
+            tasks = self.get_tasks_with_prefix(prefix)
+        elif suffix is not None:
+            tasks = self.get_tasks_with_suffix(suffix)
+        else:
+            tasks = list()
+
         deps = self.gen_all_deps(tasks)
         self._show_flow('flow_' + name, list(deps.keys()), {k: v for k, v in deps.items() if len(v) > 0})
 
