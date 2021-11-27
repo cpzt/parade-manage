@@ -465,7 +465,7 @@ class ParadeManage:
     def store_all_deps(self, name=None, tasks=None, prefix=None, suffix=None):
         name = name if name is not None else datetime.now().strftime('%Y%m%d')
 
-        if tasks is not None or len(tasks) > 0:
+        if tasks is not None and len(tasks) > 0:
             tasks = tasks
         elif prefix is not None:
             tasks = self.get_tasks_with_prefix(prefix)
