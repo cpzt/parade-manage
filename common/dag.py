@@ -1,4 +1,5 @@
 from copy import deepcopy
+from typing import Any, Dict, Set, List
 
 
 class DAG:
@@ -19,13 +20,13 @@ class DAG:
     def reversed_graph(self):
         return self._reversed_graph
 
-    def add_node(self, node):
+    def add_node(self, node: Any):
         node_id = id(node)
         self._nodes[node_id] = node
         self._graph[node_id] = set()
         self._reversed_graph[node_id] = set()
 
-    def remove_node(self, node):
+    def remove_node(self, node: Any):
         node_id = id(node)
         del self._nodes[node_id]
 
@@ -39,10 +40,10 @@ class DAG:
             if node_id in dep_node_id_set:
                 dep_node_id_set.remove(node_id)
 
-    def contains_node(self, node):
+    def contains_node(self, node: Any) -> bool:
         return id(node) in self._nodes
 
-    def add_edge(self, node, dep_node):
+    def add_edge(self, node: Any, dep_node: Any):
         nid, did = id(node), id(dep_node)
         if nid not in self._nodes or did not in self._nodes:
             raise KeyError('node does not exist')
@@ -50,7 +51,7 @@ class DAG:
         self._graph[did].add(nid)
         self._reversed_graph[nid].add(did)
 
-    def remove_edge(self, node, dep_node):
+    def remove_edge(self, node: Any, dep_node: Any):
         nid, did = id(node), id(dep_node)
         if nid not in self._nodes or did not in self._nodes:
             raise KeyError('node does not exist')
@@ -59,14 +60,14 @@ class DAG:
             self._graph[did].remove(nid)
             self._reversed_graph[nid].remove(did)
 
-    def contains_edge(self, node, dep_node):
+    def contains_edge(self, node: Any, dep_node: Any) -> bool:
         nid, did = id(node), id(dep_node)
         if nid not in self._nodes or did not in self._nodes:
             return False
 
         return nid in self._graph[did]
 
-    def find_no_dep_ids(self, reversed_graph=None):
+    def find_no_dep_ids(self, reversed_graph: Dict[int, Set] = None) -> List:
 
         reversed_graph = reversed_graph or self._reversed_graph
 
@@ -77,7 +78,7 @@ class DAG:
 
         return no_dep_ids
 
-    def topological_sort(self, graph=None, reversed_graph=None):
+    def topological_sort(self, graph: Dict[int, Set] = None, reversed_graph: Dict[int, Set] = None) -> List:
         no_dep_ids = self.find_no_dep_ids()
 
         graph = graph or self._graph
@@ -106,7 +107,7 @@ class DAG:
 
         return [self._nodes[nid] for nid in traversed_ids]
 
-    def bfs(self, start_nodes=None):
+    def bfs(self, start_nodes: List = None):
         if start_nodes:
             start_nodes_ids = [id(node) for node in start_nodes]
         else:
@@ -127,6 +128,6 @@ class DAG:
                     visited.add(id(node))
                     queue.append(node)
 
-    def children(self, node):
+    def children(self, node: Any) -> List:
         child_node_ids = self._graph[node]
         return [self._nodes[nid] for nid in child_node_ids]
