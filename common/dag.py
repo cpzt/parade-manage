@@ -1,9 +1,10 @@
+from __future__ import annotations
 from copy import deepcopy
 from typing import Any, Dict, Set, List
 
 
 class DAG:
-    def __init__(self):
+    def __init__(self, ):
         self._nodes = dict()
         self._graph = dict()
         self._reversed_graph = dict()
@@ -131,3 +132,37 @@ class DAG:
     def children(self, node: Any) -> List:
         child_node_ids = self._graph[node]
         return [self._nodes[nid] for nid in child_node_ids]
+
+    def predecessor(self, node: Any) -> List:
+        node_id = id(node)
+        return [self.nodes[node_id] for node_id in self.reversed_graph[node_id]]
+
+    def successor(self, node: Any) -> List:
+        node_id = id(node)
+        return [self.nodes[node_id] for node_id in self.graph[node_id]]
+
+    def all_predecessor(self, nodes: List) -> Dict:
+        all_deps = {}
+
+        queue = nodes
+
+        while len(queue) > 0:
+            node = queue.pop()
+
+            predecessor_nodes = self.predecessor(node)
+
+            all_deps[node] = predecessor_nodes
+            queue.extend(predecessor_nodes)
+
+        return all_deps
+
+    @classmethod
+    def from_reversed_graph(cls, reversed_graph: Dict[Any, Set]) -> DAG:
+        dag = DAG()
+        for node, deps_nodes in reversed_graph.items():
+            dag.add_node(node)
+            for deps_node in deps_nodes:
+                dag.add_node(deps_node)
+                dag.add_edge(node, deps_node)
+
+        return dag
