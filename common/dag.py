@@ -1,13 +1,17 @@
 from __future__ import annotations
 from copy import deepcopy
-from typing import Any, Dict, Set, List
+from typing import Any, Dict, Set, List, Callable
 
 
 class DAG:
-    def __init__(self, ):
-        self._nodes = dict()
+    def __init__(self):
+        self._nodes = dict()  # node_id -> node
         self._graph = dict()
         self._reversed_graph = dict()
+
+    @property
+    def node_map(self):
+        return self._nodes
 
     @property
     def nodes(self):
@@ -23,9 +27,11 @@ class DAG:
 
     def add_node(self, node: Any):
         node_id = id(node)
-        self._nodes[node_id] = node
-        self._graph[node_id] = set()
-        self._reversed_graph[node_id] = set()
+
+        if node_id not in self._nodes:
+            self._nodes[node_id] = node
+            self._graph[node_id] = set()
+            self._reversed_graph[node_id] = set()
 
     def remove_node(self, node: Any):
         node_id = id(node)
@@ -135,13 +141,13 @@ class DAG:
 
     def predecessor(self, node: Any) -> List:
         node_id = id(node)
-        return [self.nodes[node_id] for node_id in self.reversed_graph[node_id]]
+        return [self._nodes[node_id] for node_id in self.reversed_graph[node_id]]
 
     def successor(self, node: Any) -> List:
         node_id = id(node)
-        return [self.nodes[node_id] for node_id in self.graph[node_id]]
+        return [self._nodes[node_id] for node_id in self.graph[node_id]]
 
-    def all_predecessor(self, nodes: List) -> Dict:
+    def _traverse(self, nodes: List, apply: Callable) -> Dict:
         all_deps = {}
 
         queue = nodes
@@ -149,12 +155,24 @@ class DAG:
         while len(queue) > 0:
             node = queue.pop()
 
-            predecessor_nodes = self.predecessor(node)
+            predecessor_nodes = apply(node)
 
             all_deps[node] = predecessor_nodes
             queue.extend(predecessor_nodes)
 
         return all_deps
+
+    def all_predecessor(self, nodes: List) -> Dict:
+        """
+        get all predecessor node
+        """
+        return self._traverse(nodes, apply=self.predecessor)
+
+    def all_successor(self, nodes: List) -> Dict:
+        """
+        get all successor node
+        """
+        return self._traverse(nodes, apply=self.successor)
 
     @classmethod
     def from_reversed_graph(cls, reversed_graph: Dict[Any, Set]) -> DAG:
