@@ -90,6 +90,11 @@ class ParadeManage:
         return dag
 
     def dump(self, target_tasks: str | List = None, flow_name: str = None):
+        """
+        dump and generate file
+        :param target_tasks: target tasks or None
+        :param flow_name: flow name or None
+        """
         flow_name = flow_name or "flow-" + datetime.now().strftime("%Y%m%d")
 
         if target_tasks is None:
@@ -111,6 +116,11 @@ class ParadeManage:
             yaml.dump(data, f, indent=2)
 
     def tree(self, name, task_names: List = None):
+        """
+        show task
+        :param name: name of flow
+        :param task_names: task names or None
+        """
         if task_names is None or len(task_names) == 0:
             nodes = self.dag.nodes
         else:
