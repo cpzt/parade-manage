@@ -12,9 +12,6 @@ on:
   push:
     tags:
       - 'v*'
-    branches-ignore:
-      - dev
-      - 'feature/*'
 
 permissions:
   contents: read
