@@ -4,7 +4,7 @@ from setuptools import setup
 
 setup(
     name='parade-manage',
-    version='0.0.1.17',
+    version='0.0.1.18',
     author='Pan Chen',
     author_email='chenpan9012@gmail.com',
     description='A manage module of parade',
@@ -15,6 +15,7 @@ setup(
     include_package_data=True,
     platforms=['any'],
     package_dir={"parade_manage": "src"},
+    packages=["parade_manage"],
     classifiers=[
         'Intended Audience :: Developers',
         'License :: OSI Approved :: Apache Software License',
