@@ -7,18 +7,15 @@ from __future__ import annotations
 
 import os
 import sys
-from .utils import iter_classes, tree
-from typing import List, Type, Dict
-
 import yaml
 
-
+from typing import List, Type, Dict
 from datetime import datetime
-
 
 from parade.core.task import Task
 from parade.utils.modutils import iter_classes
 
+from .utils import iter_classes, tree
 from .common.dag import DAG
 
 
