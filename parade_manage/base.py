@@ -50,7 +50,7 @@ class ParadeManage:
         :param project_path: target project path
         :return: project path
         """
-        project_path = os.path.expanduser(project_path) if project_path is not None else os.path.curdir
+        project_path = os.path.expanduser(project_path) if project_path is not None else os.getcwd()
         os.chdir(project_path)  # change project root path
         sys.path.insert(0, os.getcwd())
 
@@ -109,8 +109,12 @@ class ParadeManage:
 
         data = {"tasks": task_names, "deps": deps}
 
+        class IndentDumper(yaml.Dumper):
+            def increase_indent(self, flow=False, indentless=False):
+                return super(IndentDumper, self).increase_indent(flow, False)
+
         with open("./flows/" + flow_name + ".yml", "w") as f:
-            yaml.dump(data, f, indent=2)
+            yaml.dump(data, f, Dumper=IndentDumper, default_flow_style=False)
 
     def tree(self, name, task_names: List = None):
         """
