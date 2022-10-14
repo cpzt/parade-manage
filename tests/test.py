@@ -1,8 +1,8 @@
 
 from unittest import TestCase
 
-from parade_manage import ParadeManage
-from utils import walk_modules, tree
+from src.parade_manage import ParadeManage
+from src.utils import walk_modules, tree
 
 
 class Test(TestCase):
@@ -11,7 +11,7 @@ class Test(TestCase):
         ParadeManage.to_dag({"a": ["p1", "p2"]})
 
     def test_walk_modules(self):
-        print(walk_modules("common"))
+        print(walk_modules("../src/common"))
 
     def test_dump(self):
         pass

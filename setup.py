@@ -15,6 +15,7 @@ setup(
     python_requires='>=3.4',
     include_package_data=True,
     platforms=['any'],
+    package_dir={"": "src"},
     classifiers=[
         'Intended Audience :: Developers',
         'License :: OSI Approved :: Apache Software License',
