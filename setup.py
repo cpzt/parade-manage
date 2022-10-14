@@ -1,6 +1,6 @@
 # -*- coding:utf-8 -*-
 
-from setuptools import setup
+from setuptools import setup, find_packages
 
 setup(
     name='parade-manage',
@@ -14,8 +14,7 @@ setup(
     python_requires='>=3.4',
     include_package_data=True,
     platforms=['any'],
-    package_dir={"parade_manage": "src"},
-    packages=["parade_manage"],
+    packages=find_packages(),
     classifiers=[
         'Intended Audience :: Developers',
         'License :: OSI Approved :: Apache Software License',
