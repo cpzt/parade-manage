@@ -174,13 +174,47 @@ class DAG:
         """
         return self._traverse(nodes, apply=self.successor)
 
+    @property
+    def isolated_nodes(self) -> List:
+        """
+        no predecessor and no successor
+        :return: node
+        """
+        no_pred_nodes = [nid for nid, pids in self.reversed_graph.items() if len(pids) == 0]
+        no_suc_nodes = [nid for nid, sids in self.graph.items() if len(sids) == 0]
+
+        isolated_node_ids = set(no_pred_nodes) & set(no_suc_nodes)
+
+        return [self.node_map[nid] for nid in isolated_node_ids]
+
+    @property
+    def root_nodes(self):
+        no_pred_nodes = [nid for nid, pids in self.reversed_graph.items() if len(pids) == 0]
+        return [self.node_map[nid] for nid in no_pred_nodes]
+
+    @property
+    def leaf_nodes(self):
+        no_suc_nodes = [nid for nid, sids in self.graph.items() if len(sids) == 0]
+        return [self.node_map[nid] for nid in no_suc_nodes]
+
     @classmethod
-    def from_reversed_graph(cls, reversed_graph: Dict[Any, Set]) -> DAG:
+    def from_reversed_graph(cls, reversed_graph: Dict[Any, Set | List]) -> DAG:
         dag = DAG()
         for node, deps_nodes in reversed_graph.items():
             dag.add_node(node)
             for deps_node in deps_nodes:
                 dag.add_node(deps_node)
                 dag.add_edge(node, deps_node)
+
+        return dag
+
+    @classmethod
+    def from_graph(cls, graph: Dict[Any, Set | List]) -> DAG:
+        dag = DAG()
+        for node, suc_nodes in graph.items():
+            dag.add_node(node)
+            for suc_node in suc_nodes:
+                dag.add_node(suc_node)
+                dag.add_edge(suc_node, node)
 
         return dag

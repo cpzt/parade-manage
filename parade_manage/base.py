@@ -25,7 +25,7 @@ class ParadeManage:
 
         self.project_path = self.init_context(project_path)
 
-        self.dag = self.init_dag()
+        self.dag: DAG = self.init_dag()
 
     @property
     def task_map(self):
@@ -138,3 +138,24 @@ class ParadeManage:
 
         tree(task_map, name)
 
+    @property
+    def isolated_tasks(self) -> List[str]:
+        """
+        no predecessor and no successor
+        :return: task name
+        """
+        return [node.name for node in self.dag.isolated_nodes]
+
+    @property
+    def leaf_tasks(self) -> List[str]:
+        """
+        :return: task name
+        """
+        return [node.name for node in self.dag.leaf_nodes]
+
+    @property
+    def root_tasks(self) -> List[str]:
+        """
+        :return: task name
+        """
+        return [node.name for node in self.dag.root_nodes]
