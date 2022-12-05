@@ -117,7 +117,7 @@ class ParadeManage:
             yaml.dump(data, f, Dumper=IndentDumper, default_flow_style=False)
 
     def dump_with_prefix(self, prefix: str, flow_name: str = None):
-        target_tasks = [task_name for task_name in self.task_map.keys() if task_name.startswith(task_name)]
+        target_tasks = [task_name for task_name in self.task_map.keys() if task_name.startswith(prefix)]
 
         assert len(target_tasks) > 0, f"does not find task with prefix `{prefix}`"
         self.dump(target_tasks, flow_name)
