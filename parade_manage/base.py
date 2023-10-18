@@ -8,6 +8,7 @@ from __future__ import annotations
 import os
 import sys
 import yaml
+import prettytable as pt
 
 from typing import List, Type, Dict
 from datetime import datetime
@@ -143,6 +144,24 @@ class ParadeManage:
         task_map[name] = list(task_map.keys())
 
         tree(task_map, name)
+
+    def show(self, task_names: List = None):
+        """show task in table"""
+        if task_names is None or len(task_names) == 0:
+            nodes = self.dag.nodes
+        else:
+            nodes = self.dag.all_successor([self.task_map[task_name] for task_name in task_names])
+
+        tb = pt.PrettyTable()
+
+        tb.field_names = ["name", "deps", "description"]
+
+        for task in nodes:
+            description = getattr(task, "description", "") or getattr(task, "describe", "") or \
+                          getattr(task, "__doc__", "") or ""
+            tb.add_row([task.name, "\n".join(task.deps), description.strip()], divider=True)
+
+        print(tb)
 
     @property
     def isolated_tasks(self) -> List[str]:

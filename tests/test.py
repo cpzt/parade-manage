@@ -46,3 +46,11 @@ class Test(TestCase):
         tasks = self.tasks
         dag = DAG.from_graph(tasks)
         self.assertEqual(dag.isolated_nodes, ["k"])
+
+    def test_show_tree(self):
+        m = ParadeManage("/path/to/project")
+        m.tree(name="test-tree")
+
+    def test_show_table(self):
+        m = ParadeManage("/path/to/project")
+        m.show()

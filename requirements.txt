@@ -95,3 +95,4 @@ WTForms==2.3.3
 parade==0.2.0.5
 redis
 parade-server==0.0.2.1
+prettytable==3.7.0
