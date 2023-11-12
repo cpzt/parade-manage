@@ -145,7 +145,7 @@ class ParadeManage:
 
         tree(task_map, name)
 
-    def show(self, task_names: List = None):
+    def show(self, task_names: List = None, keyword: str = None):
         """show task in table"""
         if task_names is None or len(task_names) == 0:
             nodes = self.dag.nodes
@@ -159,9 +159,17 @@ class ParadeManage:
         for task in nodes:
             description = getattr(task, "description", "") or getattr(task, "describe", "") or \
                           getattr(task, "__doc__", "") or ""
-            tb.add_row([task.name, "\n".join(task.deps), description.strip()], divider=True)
+            if keyword:
+                if self._filter_item([task.name, description], keyword):
+                    tb.add_row([task.name, "\n".join(task.deps), description.strip()], divider=True)
+            else:
+                tb.add_row([task.name, "\n".join(task.deps), description.strip()], divider=True)
 
         print(tb)
+
+    def _filter_item(self, items: List[str], keyword: str) -> bool:
+        """filter item"""
+        return len([item for item in items if keyword is not None and keyword in item]) > 0
 
     @property
     def isolated_tasks(self) -> List[str]:
