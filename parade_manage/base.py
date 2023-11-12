@@ -49,7 +49,7 @@ class ParadeManage:
         """
         init project context
         :param project_path: target project path
-        :return: project path
+        :return: current project path
         """
         project_path = os.path.expanduser(project_path) if project_path is not None else os.getcwd()
         os.chdir(project_path)  # change project root path
