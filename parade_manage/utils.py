@@ -61,7 +61,7 @@ def flatten(items, ignore_types=(bytes, str), ignore_flags=('', None)):
             yield item
 
 
-def tree(item_map: Dict[str, List], name: str, prefix: str = "", is_root: bool = True, is_tail: bool = True):
+def tree(item_map: Dict[str, List[str]], name: str, prefix: str = "", is_root: bool = True, is_tail: bool = True):
     if is_root:
         print(prefix + " " + name)
     else:
