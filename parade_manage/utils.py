@@ -2,10 +2,12 @@ from __future__ import annotations
 
 try:
     # Python <= 3.9
-    from collections import Iterable, defaultdict
+    from collections import Iterable
 except ImportError:
     # Python > 3.9
     from collections.abc import Iterable
+
+from collections import defaultdict
 
 import inspect
 from importlib import import_module
@@ -78,7 +80,7 @@ def tree(item_map: Dict[str, List[str]], name: str, prefix: str = "", is_root: b
         tree(item_map, last_child, prefix + ("    " if is_tail else "│   "), False, True)
 
 
-def find_cycles(graph):
+def find_cycles(graph: Dict[str, List[str] | Set[str]]) -> List[List[str]]:
     visited = set()
     recursion_stack = set()
     cycles = []
@@ -106,7 +108,7 @@ def find_cycles(graph):
     return cycles
 
 
-def check(tasks: Dict[str, List[str] | Set[str]]):
+def check(tasks: Dict[str, List[str] | Set[str]]) -> Tuple[Dict, Dict, Dict, List]:
 
     non_deps_tasks: Dict[str, Set[str]] = defaultdict(set)
     duplicate_tasks: Dict[str, Set[Tuple[str, int]]] = defaultdict(set)
