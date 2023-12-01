@@ -78,13 +78,39 @@ def tree(item_map: Dict[str, List[str]], name: str, prefix: str = "", is_root: b
         tree(item_map, last_child, prefix + ("    " if is_tail else "│   "), False, True)
 
 
+def find_cycles(graph):
+    visited = set()
+    recursion_stack = set()
+    cycles = []
+
+    def dfs(node, path):
+        if node in recursion_stack:
+            cycles.append(path + [node])
+            return
+
+        if node in visited:
+            return
+
+        visited.add(node)
+        recursion_stack.add(node)
+
+        if node in graph:
+            for neighbor in graph[node]:
+                dfs(neighbor, path + [node])
+
+        recursion_stack.remove(node)
+
+    for node in graph:
+        dfs(node, [])
+
+    return cycles
+
+
 def check(tasks: Dict[str, List[str] | Set[str]]):
-    # reversed_graph = self.dag.reversed_graph
-    # tasks = {t.name: [n.name for n in d] for t, d in reversed_graph.items()}
 
     non_deps_tasks: Dict[str, Set[str]] = defaultdict(set)
     duplicate_tasks: Dict[str, Set[Tuple[str, int]]] = defaultdict(set)
-    circular_tasks: Dict[str, List[Dict[str, Set[str] | List[str]]]] = defaultdict(list)
+    circular_tasks: List[List[str]] = find_cycles(tasks)
 
     for task, deps in tasks.items():
         for dp in deps:
@@ -96,13 +122,6 @@ def check(tasks: Dict[str, List[str] | Set[str]]):
             if deps.count(dp) > 1:
                 duplicate_tasks[task].add((dp, deps.count(dp)))
 
-            # check for circular dependence
-            if dp == task:
-                circular_tasks[task].append({dp: deps})
-
-            if dp != task and dp in tasks and task in tasks[dp]:
-                circular_tasks[task].append({dp: tasks[dp]})
-
     non_deps_tasks = {k: list(v) for k, v in non_deps_tasks.items()}
     duplicate_tasks = {k: list(v) for k, v in duplicate_tasks.items()}
 
@@ -112,25 +131,29 @@ def check(tasks: Dict[str, List[str] | Set[str]]):
 def show_check_info(tasks: Dict[str, List[str] | Set[str]]):
     deps, non_deps, duplicate, circular = check(tasks)
 
-    print(f"Total: {len(deps)}")
-    print('------------------------------------------')
     if len(non_deps) == 0 and len(duplicate) == 0 and len(circular) == 0:
-        print('PASS')
+        print(f"Total: {len(deps)}, PASS")
+        return
+    else:
+        print(f"Total: {len(deps)}")
+
+    dividing_line = "---*---" * 8
+    print(dividing_line)
 
     if len(non_deps) > 0:
-        print('[Invalid Dependencies]')
+        print("[Invalid Dependencies]")
         for k, v in non_deps.items():
             print(k, ' ==>  ', v)
-        print('------------------------------------------')
+        print("\n" + dividing_line)
 
     if len(duplicate) > 0:
         print('[Duplicate Dependencies]')
         for k, v in duplicate.items():
             print(k, ' ==>  ', v)
-        print('------------------------------------------')
+        print("\n" + dividing_line)
 
     if len(circular) > 0:
         print('[Circular Dependencies]')
-        for k, v in circular.items():
-            print(k, ' ==>  ', v)
-        print('------------------------------------------')
+        for cycle in circular:
+            print(" -> ".join(cycle))
+        print("\n" + dividing_line)

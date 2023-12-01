@@ -38,6 +38,13 @@ class Test(TestCase):
         }
         show_check_info(tasks)
 
+    def test_check_normal(self):
+        tasks = {
+            "a": [], "b": [], "c": [],
+            "k": ["a", "b"]
+        }
+        show_check_info(tasks)
+
     def test_walk_modules(self):
         print(walk_modules("../parade_manage/common"))
 
