@@ -51,3 +51,9 @@ show tasks
 ```bash
 > m.tree(name="flow", task_names=['d', 'e'])
 ```
+
+show tables
+```python
+m.show()  # or
+m.show(task_names=["taskA", "taskB"], keyword="filter word")
+```
