@@ -6,7 +6,7 @@ from parade_manage.common.node import Node
 from parade_manage.common.dag import DAG
 
 from parade_manage import ParadeManage
-from parade_manage.utils import walk_modules, tree
+from parade_manage.utils import walk_modules, tree, show_check_info
 
 
 class Test(TestCase):
@@ -22,6 +22,21 @@ class Test(TestCase):
         }
         self.tasks = {Node(k, k): [Node(v, v) for v in vs] for k, vs in tasks.items()}
         self.dag = DAG.from_graph(self.tasks)
+
+    def test_circular_dag(self):
+        tasks = {
+            "g": ["a"], "a": ["g"]
+        }
+        nodes = {Node(k, k): [Node(v, v) for v in vs] for k, vs in tasks.items()}
+        DAG.from_graph(nodes)
+
+    def test_check(self):
+        tasks = {
+            "g": ["a"], "a": ["g"], "b": ["b", "h"],
+            "c": [], "k": [], "d": ["k", "c", "k"],
+            "k1": ["k3"], "k2": ["k1"], "k3": ["k2"]
+        }
+        show_check_info(tasks)
 
     def test_walk_modules(self):
         print(walk_modules("../parade_manage/common"))

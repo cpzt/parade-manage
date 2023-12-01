@@ -18,7 +18,7 @@ from parade.core.task import Task as ParadeTask
 from parade.utils.modutils import iter_classes
 from parade_manage.common.node import Node
 
-from .utils import iter_classes, tree
+from .utils import iter_classes, tree, show_check_info
 from .common.dag import DAG
 
 
@@ -204,3 +204,9 @@ class ParadeManage:
         :return: task name
         """
         return [node.name for node in self.dag.root_nodes]
+
+    def check(self):
+        reversed_graph = self.dag.reversed_graph
+        tasks = {t.name: [n.name for n in d] for t, d in reversed_graph.items()}
+
+        show_check_info(tasks)
