@@ -24,9 +24,9 @@ from .common.dag import DAG
 
 class ParadeManage:
 
-    def __init__(self, project_path: str = None):
+    def __init__(self, project_path: str = None, env: str = None):
 
-        self.project_path = self.init_context(project_path)
+        self.project_path = self.init_context(project_path, env)
 
         self.dag: DAG = self.init_dag()
 
@@ -47,15 +47,19 @@ class ParadeManage:
     def __repr__(self) -> str:
         return '<ParadeManager(project_path={})>'.format(self.project_path)
 
-    def init_context(self, project_path: str = None) -> str:
+    def init_context(self, project_path: str = None, env: str = None) -> str:
         """
         init project context
+        :param env: environment of project
         :param project_path: target project path
         :return: current project path
         """
         project_path = os.path.expanduser(project_path) if project_path is not None else os.getcwd()
         os.chdir(project_path)  # change project root path
         sys.path.insert(0, os.getcwd())
+
+        if env:
+            os.environ["PARADE_PROFILE"] = env
 
         return project_path
 
