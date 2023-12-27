@@ -25,10 +25,13 @@ jobs:
       skip_next_steps: ${{ steps.compare_version.outputs.skip_next_steps }}
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 5
+
       - name: Check for version changes
         id: compare_version
-        shell: bash
         run: |
           version_changes=$(git diff HEAD~1 HEAD -- setup.py | grep -E 'version' | wc -l)
           
