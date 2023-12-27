@@ -22,32 +22,36 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v3
-    - name: Set up Python
-      uses: actions/setup-python@v3
-      with:
-        python-version: '3'
+      - uses: actions/checkout@v3
 
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install build
+      - name: Set up Python
+        uses: actions/setup-python@v3
+        with:
+          python-version: '3'
 
-    - name: Check for version changes
-      id: compare_version
-      run: |
-        if git diff HEAD~1 -- setup.py | grep -E 'version'; then
-          echo "::set-output name=changed::true"
-        else
-          echo "::set-output name=changed::false"
-          exit 0
-        fi
+      - name: Check for version changes
+        id: compare_version
+        run: |
+          version_changes=$(git diff HEAD~1 -- setup.py | grep -E 'version' | wc -l)
+          
+          # 如果有变更，则执行后续的流程
+          if [ $version_changes -gt 0 ]; then
+            echo "Version has changed. Running the next workflow..."
+          else
+            echo "Version has not changed. Skipping the next workflow."
+            exit 78  # 78 is used to skip subsequent jobs in GitHub Actions
+          fi
 
-    - name: Build package
-      run: python -m build
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install build
 
-    - name: Publish package
-      uses: pypa/gh-action-pypi-publish@27b31702a0e7fc50959f5ad993c78deac1bdfc29
-      with:
-        user: __token__
-        password: ${{ secrets.PYPI_API_TOKEN }}
+      - name: Build package
+        run: python -m build
+
+      - name: Publish package
+        uses: pypa/gh-action-pypi-publish@27b31702a0e7fc50959f5ad993c78deac1bdfc29
+        with:
+          user: __token__
+          password: ${{ secrets.PYPI_API_TOKEN }}
