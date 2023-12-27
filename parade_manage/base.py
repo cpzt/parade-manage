@@ -25,7 +25,7 @@ from .common.dag import DAG
 class ParadeManage:
 
     def __init__(self, project_path: str = None, env: str = None):
-
+        self.env = env
         self.project_path = self.init_context(project_path, env)
 
         self.dag: DAG = self.init_dag()
@@ -45,7 +45,7 @@ class ParadeManage:
         return self._get_project_name()
 
     def __repr__(self) -> str:
-        return '<ParadeManager(project_path={})>'.format(self.project_path)
+        return '<ParadeManager(project_path={}, env={})>'.format(self.project_path, self.env)
 
     def init_context(self, project_path: str = None, env: str = None) -> str:
         """
