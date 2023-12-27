@@ -21,13 +21,11 @@ jobs:
 
     runs-on: ubuntu-latest
 
+    outputs:
+      skip_next_steps: ${{ steps.compare_version.outputs.skip_next_steps }}
+
     steps:
       - uses: actions/checkout@v3
-
-      - name: Set up Python
-        uses: actions/setup-python@v3
-        with:
-          python-version: '3'
 
       - name: Check for version changes
         id: compare_version
@@ -37,20 +35,30 @@ jobs:
           # 如果有变更，则执行后续的流程
           if [ $version_changes -gt 0 ]; then
             echo "Version has changed. Running the next workflow..."
+            echo "skip_next_steps=true" >> $GITHUB_ENV
           else
             echo "Version has not changed. Skipping the next workflow."
-            exit 78  # 78 is used to skip subsequent jobs in GitHub Actions
+            echo "skip_next_steps=false" >> $GITHUB_ENV
           fi
 
+      - name: Set up Python
+        if: ${{ needs.check_version.outputs.skip_next_steps == 'false' }}
+        uses: actions/setup-python@v3
+        with:
+         python-version: '3'
+
       - name: Install dependencies
+        if: ${{ needs.check_version.outputs.skip_next_steps == 'false' }}
         run: |
           python -m pip install --upgrade pip
           pip install build
 
       - name: Build package
+        if: ${{ needs.check_version.outputs.skip_next_steps == 'false' }}
         run: python -m build
 
       - name: Publish package
+        if: ${{ needs.check_version.outputs.skip_next_steps == 'false' }}
         uses: pypa/gh-action-pypi-publish@27b31702a0e7fc50959f5ad993c78deac1bdfc29
         with:
           user: __token__
