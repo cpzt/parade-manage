@@ -39,10 +39,10 @@ jobs:
           
           if [ $version_changes -gt 0 ]; then
             echo "Version has changed. Running the next workflow..."
-            echo "skip_next_steps=true" >> $GITHUB_ENV
+            echo "skip_next_steps=false" >> $GITHUB_ENV
           else
             echo "Version has not changed. Skipping the next workflow."
-            echo "skip_next_steps=false" >> $GITHUB_ENV
+            echo "skip_next_steps=true" >> $GITHUB_ENV
           fi
 
       - name: Set up Python
