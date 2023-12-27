@@ -124,8 +124,8 @@ def check(tasks: Dict[str, List[str] | Set[str]]) -> Tuple[Dict, Dict, Dict, Lis
             if deps.count(dp) > 1:
                 duplicate_tasks[task].add((dp, deps.count(dp)))
 
-    non_deps_tasks = {k: list(v) for k, v in non_deps_tasks.items()}
-    duplicate_tasks = {k: list(v) for k, v in duplicate_tasks.items()}
+    non_deps_tasks = {k: set(v) for k, v in non_deps_tasks.items()}
+    duplicate_tasks = {k: set(v) for k, v in duplicate_tasks.items()}
 
     return tasks, non_deps_tasks, duplicate_tasks, circular_tasks
 
