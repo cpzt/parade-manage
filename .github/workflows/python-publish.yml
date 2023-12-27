@@ -26,11 +26,11 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-
       - name: Check for version changes
         id: compare_version
+        shell: bash
         run: |
-          version_changes=$(git diff HEAD~1..HEAD -- setup.py | grep -E 'version' | wc -l)
+          version_changes=$(git diff HEAD~1 HEAD -- setup.py | grep -E 'version' | wc -l)
           
           if [ $version_changes -gt 0 ]; then
             echo "Version has changed. Running the next workflow..."
