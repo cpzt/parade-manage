@@ -30,9 +30,8 @@ jobs:
       - name: Check for version changes
         id: compare_version
         run: |
-          version_changes=$(git diff HEAD~1 -- setup.py | grep -E 'version' | wc -l)
+          version_changes=$(git diff HEAD~1..HEAD -- setup.py | grep -E 'version' | wc -l)
           
-          # 如果有变更，则执行后续的流程
           if [ $version_changes -gt 0 ]; then
             echo "Version has changed. Running the next workflow..."
             echo "skip_next_steps=true" >> $GITHUB_ENV
