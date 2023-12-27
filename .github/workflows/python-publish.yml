@@ -40,7 +40,7 @@ jobs:
           echo "::set-output name=changed::true"
         else
           echo "::set-output name=changed::false"
-          exit 1
+          exit 0
         fi
 
     - name: Build package
