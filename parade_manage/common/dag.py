@@ -90,7 +90,7 @@ class DAG:
 
     def topological_sort(self, graph: Dict[Node, Set[Node]] = None, reversed_graph: Dict[Node, Set[Node]] = None
                          ) -> List[Node]:
-        no_dep_ids = self.find_no_dep_ids()
+        no_dep_ids: List[NodeId] = self.find_no_dep_ids()
 
         graph = graph or self._graph
         graph = deepcopy(graph)
@@ -106,16 +106,15 @@ class DAG:
             nid = queue.pop(0)
             traversed_ids.add(nid)
 
-            dnode = self._nodes[nid]
+            dnode: Node = self._nodes[nid]
 
-            child_node_ids = graph.pop(nid)
-            for node_id in child_node_ids:
-                node = self._nodes[node_id]
+            child_nodes: Set[Node] = graph.pop(nid)
+            for node in child_nodes:
 
                 reversed_graph[node].remove(dnode)
 
                 if len(reversed_graph[node]) == 0:
-                    queue.append(node_id)
+                    queue.append(node)
 
         if len(traversed_ids) != len(self._nodes):
             raise ValueError('Graph is not acyclic')
