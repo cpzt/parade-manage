@@ -2,7 +2,7 @@ from __future__ import annotations
 
 try:
     # Python <= 3.9
-    from collections import Iterable
+    from collections import Iterable  # noqa
 except ImportError:
     # Python > 3.9
     from collections.abc import Iterable
