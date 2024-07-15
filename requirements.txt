@@ -2,4 +2,4 @@ parade==0.2.0.5
 parade_server==0.0.2.1
 prettytable==3.9.0
 PyYAML==6.0.1
-setuptools==60.2.0
+setuptools==70.0.0
