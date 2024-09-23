@@ -214,3 +214,7 @@ class ParadeManage:
         tasks = {t.name: [n.name for n in d] for t, d in reversed_graph.items()}
 
         show_check_info(tasks)
+
+    def build(self, target_tasks: str | List[str] = None):
+        """generate flow"""
+        return self.dump(target_tasks)
