@@ -30,6 +30,15 @@ class ParadeManage:
 
         self.dag: DAG = self.init_dag()
 
+    def change_env(self, env: str):
+        self.env = env
+        self.init_context(self.project_path, env)
+        print("change env to {}".format(env))
+
+    @property
+    def current_env(self) -> str:
+        return os.environ.get("PARADE_PROFILE", "default")
+
     @property
     def task_map(self) -> Dict[str, Node]:
         """
