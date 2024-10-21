@@ -13,7 +13,7 @@ import inspect
 from importlib import import_module
 
 from pkgutil import iter_modules
-from typing import List, Type, Callable, Dict, Set, Tuple
+from typing import List, Type, Callable, Dict, Set, Tuple, Union
 
 
 def walk_modules(path: str) -> List:
@@ -159,3 +159,22 @@ def show_check_info(tasks: Dict[str, List[str] | Set[str]]):
         for cycle in circular:
             print(" -> ".join(cycle))
         print("\n" + dividing_line)
+
+
+def add_tag(cls, tag: Union[str, Iterable[str]]):
+    if tag:
+        if not hasattr(cls, "__tags__"):
+            cls.__tags__ = set()
+        if isinstance(tag, str):
+            tags = [tag]
+        else:
+            tags = tag
+        for tag in tags:
+            cls.__tags__.add(tag)
+
+def tag(tags: Iterable[str]):
+    def wrapper(cls):
+        add_tag(cls, tags)
+        return cls
+
+    return wrapper
