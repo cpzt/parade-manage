@@ -17,6 +17,7 @@ from datetime import datetime
 from parade.core.task import Task as ParadeTask
 from parade.utils.modutils import iter_classes
 from parade_manage.common.node import Node
+from .plugin import Plugin, PluginRegistry
 
 from .utils import iter_classes, tree, show_check_info
 from .common.dag import DAG
@@ -29,6 +30,7 @@ class ParadeManage:
         self.project_path = self.init_context(project_path, env)
 
         self.dag: DAG = self.init_dag()
+        self.plugins: Dict[str, Plugin] = {}
 
     def change_env(self, env: str):
         self.env = env
@@ -227,3 +229,12 @@ class ParadeManage:
     def build(self, target_tasks: str | List[str] = None):
         """generate flow"""
         return self.dump(target_tasks)
+
+    def reload_plugins(self):
+        self.plugins = PluginRegistry.load()
+
+    def execute(self, cmd):
+        plugin: Plugin = self.plugins.get(cmd)
+        if plugin:
+            raise KeyError(f"plugin {cmd} not found")
+        return plugin.run(self.dag)
