@@ -24,7 +24,7 @@ def walk_modules(path: str) -> List:
     mods = []
 
     mod = import_module(path)
-
+    mods.append(mod)
     if not hasattr(mod, '__path__'):
         return []
 

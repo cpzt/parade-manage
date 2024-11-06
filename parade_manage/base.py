@@ -15,7 +15,6 @@ from typing import List, Type, Dict
 from datetime import datetime
 
 from parade.core.task import Task as ParadeTask
-from parade.utils.modutils import iter_classes
 from parade_manage.common.node import Node
 from .plugin import Plugin, PluginRegistry
 
