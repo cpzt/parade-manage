@@ -6,7 +6,6 @@ from parade_manage.common.node import Node
 from parade_manage.common.dag import DAG
 
 from parade_manage import ParadeManage
-from parade_manage.engine import topological_sort
 from parade_manage.utils import walk_modules, tree, show_check_info
 
 
@@ -98,5 +97,5 @@ class Test(TestCase):
         dag.add_edge(f, a)
         dag.add_edge(f, b)
 
-        sorted_nodes = topological_sort(dag)
+        sorted_nodes = dag.list()
         self.assertCountEqual([n.name for n in sorted_nodes], ["D", "B", "A", "F", "C", "E"])
