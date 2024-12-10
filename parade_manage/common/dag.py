@@ -12,6 +12,8 @@ class DAG:
         self._graph: Dict[Node, Set[Node]] = defaultdict(set)
         self._reversed_graph: Dict[Node, Set[Node]] = defaultdict(set)
 
+        self.in_degree: Dict[NodeId, int] = defaultdict(int)
+
     @property
     def node_map(self) -> Dict[NodeId, Node]:
         return self._nodes
@@ -28,6 +30,9 @@ class DAG:
     def reversed_graph(self) -> Dict[Node, Set[Node]]:
         return self._reversed_graph
 
+    def get_node(self, node_id: NodeId) -> Node:
+        return self._nodes[node_id]
+
     def add_node(self, node: Node):
         node_id = node.node_id
 
@@ -35,6 +40,7 @@ class DAG:
             self._nodes[node_id] = node
             self._graph[node] = set()
             self._reversed_graph[node] = set()
+            self.in_degree[node_id] = 0
 
     def remove_node(self, node: Node):
         node_id = node.node_id
@@ -61,6 +67,8 @@ class DAG:
         self._graph[dep_node].add(node)
         self._reversed_graph[node].add(dep_node)
 
+        self.in_degree[nid] += 1
+
     def remove_edge(self, node: Node, dep_node: Node):
         nid, did = node.node_id, dep_node.node_id
         if nid not in self._nodes or did not in self._nodes:
@@ -69,6 +77,8 @@ class DAG:
         if nid in self._graph[dep_node]:
             self._graph[dep_node].remove(node)
             self._reversed_graph[node].remove(dep_node)
+
+            self.in_degree[nid] -= 1
 
     def contains_edge(self, node: Node, dep_node: Node) -> bool:
         nid, did = node.node_id, dep_node.node_id

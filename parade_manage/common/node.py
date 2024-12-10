@@ -6,9 +6,22 @@ NodeId = int
 
 class Node:
 
-    def __init__(self, name: str, value: Any):
+    def __init__(self, name: str, value: Any, priority: int = 0):
         self.name = name
         self.value = value
+        # The priority of the node.
+        # Higher values indicate higher priority (default is 0).
+        self.priority = self._validate_priority(priority)
+
+    def set_priority(self, priority: int) -> None:
+        assert priority >= 0, "`priority` must be a non-negative integer"
+        self.priority = self._validate_priority(priority)
+
+    @staticmethod
+    def _validate_priority(value: int) -> int:
+        if not isinstance(value, int) or value < 0:
+            raise ValueError("`priority` must be a non-negative integer")
+        return value
 
     @property
     def node_id(self) -> NodeId:
@@ -18,10 +31,13 @@ class Node:
         return hash(self.name)
 
     def __repr__(self):
-        return f"Node<name={self.name}>"
+        return f"Node(name={self.name}, value={self.value}, priority={self.priority})"
 
     def __eq__(self, other):
         return self.name == other.name
+
+    def __lt__(self, other):
+        return self.priority > other.priority
 
     @staticmethod
     def build_list(elements: Collection) -> List[Node]:

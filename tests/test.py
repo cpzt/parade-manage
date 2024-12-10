@@ -6,6 +6,7 @@ from parade_manage.common.node import Node
 from parade_manage.common.dag import DAG
 
 from parade_manage import ParadeManage
+from parade_manage.engine import topological_sort
 from parade_manage.utils import walk_modules, tree, show_check_info
 
 
@@ -73,3 +74,29 @@ class Test(TestCase):
     def test_show_table(self):
         m = ParadeManage("/path/to/project")
         m.show()
+
+    def test_sort(self):
+        a = Node("A", "A")
+        b = Node("B", "B", 2)
+        c = Node("C", "C", 6)
+        d = Node("D", "D", 3)
+        e = Node("E", "E")
+        f = Node("F", "F", 8)
+
+        dag = DAG()
+        dag.add_node(a)
+        dag.add_node(b)
+        dag.add_node(c)
+        dag.add_node(d)
+        dag.add_node(e)
+        dag.add_node(f)
+
+        dag.add_edge(c, a)
+        dag.add_edge(c, b)
+        dag.add_edge(e, c)
+        dag.add_edge(e, d)
+        dag.add_edge(f, a)
+        dag.add_edge(f, b)
+
+        sorted_nodes = topological_sort(dag)
+        self.assertCountEqual([n.name for n in sorted_nodes], ["D", "B", "A", "F", "C", "E"])
