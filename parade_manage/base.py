@@ -16,6 +16,7 @@ from datetime import datetime
 
 from parade.core.task import Task as ParadeTask
 from parade_manage.common.node import Node
+from .constants import FLAG_NODE_PRIORITY
 from .plugin import Plugin, PluginRegistry
 
 from .utils import iter_classes, tree, show_check_info
@@ -107,9 +108,12 @@ class ParadeManage:
 
     @classmethod
     def to_dag(cls, reversed_graph: Dict[ParadeTask, List[ParadeTask]]) -> DAG:
-        node_reversed_graph = {Node(k.name, k): [Node(v.name, v) for v in vs] for k, vs in reversed_graph.items()}
+        node_reversed_graph = {Node(k.name, k, cls._get_priority(k)): [Node(v.name, v, cls._get_priority(v)) for v in vs] for k, vs in reversed_graph.items()}
         dag = DAG.from_reversed_graph(node_reversed_graph)
         return dag
+    @staticmethod
+    def _get_priority(cls: ParadeTask) -> int:
+        return getattr(cls, FLAG_NODE_PRIORITY, 0)
 
     def dump(self, target_tasks: str | List[str] = None, flow_name: str = None):
         """
