@@ -156,7 +156,7 @@ class ParadeManage:
         target_tasks = set()
         for task_name in self.task_map.keys():
             for name in names:
-                if task_name in name:
+                if name in task_name:
                     target_tasks.add(task_name)
 
         assert len(target_tasks) > 0, f"does not find task with names `{names}`"
