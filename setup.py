@@ -4,7 +4,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='parade-manage',
-    version='0.0.2.8',
+    version='0.0.2.9',
     author='Pan Chen',
     author_email='chenpan9012@gmail.com',
     description='A manage module of parade',
