@@ -6,6 +6,7 @@ parade manager for managing `parade`
 from __future__ import annotations
 
 import os
+import re
 import sys
 
 import yaml
@@ -152,11 +153,12 @@ class ParadeManage:
         assert len(target_tasks) > 0, f"does not find task with prefix `{prefix}`"
         self.dump(target_tasks, flow_name)
 
-    def dump_like(self, names: List[str], flow_name: str = None):
+    def dump_with_re(self, names: List[str], flow_name: str = None):
         target_tasks = set()
         for task_name in self.task_map.keys():
             for name in names:
-                if name in task_name:
+                pattern = re.compile(name)
+                if pattern.search(task_name):
                     target_tasks.add(task_name)
 
         assert len(target_tasks) > 0, f"does not find task with names `{names}`"
