@@ -159,7 +159,7 @@ class ParadeManage:
                 if task_name in name:
                     target_tasks.add(task_name)
 
-        assert len(target_tasks) > 0, f"does not find task with prefix `{prefix}`"
+        assert len(target_tasks) > 0, f"does not find task with names `{names}`"
         self.dump(list(target_tasks), flow_name)
 
     def tree(self, flow_name: str, task_names: List = None):
