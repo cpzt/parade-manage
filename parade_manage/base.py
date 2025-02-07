@@ -152,6 +152,16 @@ class ParadeManage:
         assert len(target_tasks) > 0, f"does not find task with prefix `{prefix}`"
         self.dump(target_tasks, flow_name)
 
+    def dump_like(self, names: List[str], flow_name: str = None):
+        target_tasks = set()
+        for task_name in self.task_map.keys():
+            for name in names:
+                if task_name in name:
+                    target_tasks.add(task_name)
+
+        assert len(target_tasks) > 0, f"does not find task with prefix `{prefix}`"
+        self.dump(list(target_tasks), flow_name)
+
     def tree(self, flow_name: str, task_names: List = None):
         """
         show task
